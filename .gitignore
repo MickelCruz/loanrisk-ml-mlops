@@ -1,0 +1,24 @@
+# Datos — nunca subir al repo
+data/
+
+# Entorno virtual
+venv/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Jupyter
+.ipynb_checkpoints/
+
+# MLflow
+mlruns/
+
+# Variables de entorno y credenciales
+.env
+*.json.key
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
