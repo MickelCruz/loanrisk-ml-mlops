@@ -1,0 +1,24 @@
+{
+  "modelo": "XGBoost",
+  "threshold": 0.5701,
+  "metricas": {
+    "auc_pr_val": 0.5646,
+    "auc_pr_test": 0.5696,
+    "auc_roc_val": 0.7864,
+    "ks": 0.4168,
+    "gini": 0.5729,
+    "f1_optimo": 0.506,
+    "gap_train_val": 0.0593
+  },
+  "scorecard": {
+    "score_min": 300,
+    "score_max": 850,
+    "score_medio_no_default": 649,
+    "score_medio_default": 512
+  },
+  "escala_riesgo": {
+    "bajo": "score >= 700",
+    "medio": "score >= 600 y < 700",
+    "alto": "score < 600"
+  }
+}
