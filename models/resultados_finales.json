@@ -1,20 +1,20 @@
 {
   "modelo": "XGBoost",
-  "threshold": 0.5701,
+  "threshold": 0.5387,
   "metricas": {
-    "auc_pr_val": 0.5646,
-    "auc_pr_test": 0.5696,
-    "auc_roc_val": 0.7864,
-    "ks": 0.4168,
-    "gini": 0.5729,
-    "f1_optimo": 0.506,
-    "gap_train_val": 0.0593
+    "auc_pr_val": 0.565,
+    "auc_pr_test": 0.57,
+    "auc_roc_val": 0.7867,
+    "ks": 0.4169,
+    "gini": 0.5734,
+    "f1_optimo": 0.5076,
+    "gap_train_val": 0.0589
   },
   "scorecard": {
     "score_min": 300,
     "score_max": 850,
-    "score_medio_no_default": 649,
-    "score_medio_default": 512
+    "score_medio_no_default": 650,
+    "score_medio_default": 511
   },
   "escala_riesgo": {
     "bajo": "score >= 700",
