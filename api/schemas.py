@@ -1,4 +1,4 @@
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, field_validator
 from typing import Optional, List
 import json
 from pathlib import Path
@@ -60,91 +60,99 @@ class LoanRequest(BaseModel):
     debt_settlement_flag: str   = 'N'
 
     # Variables de buró
-    tot_cur_bal:           Optional[float] = None
-    total_rev_hi_lim:      Optional[float] = None
-    acc_open_past_24mths:  Optional[float] = None
-    avg_cur_bal:           Optional[float] = None
-    bc_open_to_buy:        Optional[float] = None
-    bc_util:               Optional[float] = None
-    mo_sin_old_il_acct:    Optional[float] = None
-    mo_sin_old_rev_tl_op:  Optional[float] = None
-    mo_sin_rcnt_rev_tl_op: Optional[float] = None
-    mo_sin_rcnt_tl:        Optional[float] = None
-    mort_acc:              Optional[float] = None
-    mths_since_recent_bc:  Optional[float] = None
-    mths_since_recent_inq: Optional[float] = None
-    num_accts_ever_120_pd: Optional[float] = None
-    num_actv_bc_tl:        Optional[float] = None
-    num_actv_rev_tl:       Optional[float] = None
-    num_bc_sats:           Optional[float] = None
-    num_bc_tl:             Optional[float] = None
-    num_il_tl:             Optional[float] = None
-    num_op_rev_tl:         Optional[float] = None
-    num_rev_accts:         Optional[float] = None
-    num_rev_tl_bal_gt_0:   Optional[float] = None
-    num_sats:              Optional[float] = None
-    num_tl_120dpd_2m:      Optional[float] = None
-    num_tl_30dpd:          Optional[float] = None
-    num_tl_90g_dpd_24m:    Optional[float] = None
-    num_tl_op_past_12m:    Optional[float] = None
-    pct_tl_nvr_dlq:        Optional[float] = None
-    percent_bc_gt_75:      Optional[float] = None
-    pub_rec_bankruptcies:  Optional[float] = None
-    tax_liens:             Optional[float] = None
-    tot_hi_cred_lim:       Optional[float] = None
-    total_bal_ex_mort:     Optional[float] = None
-    total_bc_limit:        Optional[float] = None
+    tot_cur_bal:                Optional[float] = None
+    total_rev_hi_lim:           Optional[float] = None
+    acc_open_past_24mths:       Optional[float] = None
+    avg_cur_bal:                Optional[float] = None
+    bc_open_to_buy:             Optional[float] = None
+    bc_util:                    Optional[float] = None
+    mo_sin_old_il_acct:         Optional[float] = None
+    mo_sin_old_rev_tl_op:       Optional[float] = None
+    mo_sin_rcnt_rev_tl_op:      Optional[float] = None
+    mo_sin_rcnt_tl:             Optional[float] = None
+    mort_acc:                   Optional[float] = None
+    mths_since_recent_bc:       Optional[float] = None
+    mths_since_recent_inq:      Optional[float] = None
+    num_accts_ever_120_pd:      Optional[float] = None
+    num_actv_bc_tl:             Optional[float] = None
+    num_actv_rev_tl:            Optional[float] = None
+    num_bc_sats:                Optional[float] = None
+    num_bc_tl:                  Optional[float] = None
+    num_il_tl:                  Optional[float] = None
+    num_op_rev_tl:              Optional[float] = None
+    num_rev_accts:              Optional[float] = None
+    num_rev_tl_bal_gt_0:        Optional[float] = None
+    num_sats:                   Optional[float] = None
+    num_tl_120dpd_2m:           Optional[float] = None
+    num_tl_30dpd:               Optional[float] = None
+    num_tl_90g_dpd_24m:         Optional[float] = None
+    num_tl_op_past_12m:         Optional[float] = None
+    pct_tl_nvr_dlq:             Optional[float] = None
+    percent_bc_gt_75:           Optional[float] = None
+    pub_rec_bankruptcies:       Optional[float] = None
+    tax_liens:                  Optional[float] = None
+    tot_hi_cred_lim:            Optional[float] = None
+    total_bal_ex_mort:          Optional[float] = None
+    total_bc_limit:             Optional[float] = None
     total_il_high_credit_limit: Optional[float] = None
-    acc_now_delinq:        Optional[float] = None
-    chargeoff_within_12_mths: Optional[float] = None
+    acc_now_delinq:             Optional[float] = None
+    chargeoff_within_12_mths:   Optional[float] = None
     collections_12_mths_ex_med: Optional[float] = None
-    delinq_amnt:           Optional[float] = None
-    tot_coll_amt:          Optional[float] = None
+    delinq_amnt:                Optional[float] = None
+    tot_coll_amt:               Optional[float] = None
 
-    # Validators
-    @validator('grade')
+    # ── Validators ────────────────────────────────────────────────────────────
+    @field_validator('grade')
+    @classmethod
     def grade_valido(cls, v):
         if v not in VALID_GRADE:
             raise ValueError(f"grade inválido: {v}. Valores válidos: {VALID_GRADE}")
         return v
 
-    @validator('emp_length')
+    @field_validator('emp_length')
+    @classmethod
     def emp_length_valido(cls, v):
         if v is not None and v not in VALID_EMP_LENGTH:
             raise ValueError(f"emp_length inválido: {v}")
         return v
 
-    @validator('home_ownership')
+    @field_validator('home_ownership')
+    @classmethod
     def home_ownership_valido(cls, v):
         if v not in VALID_HOME_OWNERSHIP:
             return FALLBACKS['home_ownership']
         return v
 
-    @validator('verification_status')
+    @field_validator('verification_status')
+    @classmethod
     def verification_status_valido(cls, v):
         if v not in VALID_VERIFICATION_STATUS:
             return FALLBACKS['verification_status']
         return v
 
-    @validator('purpose')
+    @field_validator('purpose')
+    @classmethod
     def purpose_valido(cls, v):
         if v not in VALID_PURPOSE:
             return FALLBACKS['purpose']
         return v
 
-    @validator('addr_state')
+    @field_validator('addr_state')
+    @classmethod
     def addr_state_valido(cls, v):
         if v not in VALID_ADDR_STATE:
             return FALLBACKS['addr_state']
         return v
 
-    @validator('annual_inc')
+    @field_validator('annual_inc')
+    @classmethod
     def annual_inc_positivo(cls, v):
         if v <= 0:
             raise ValueError("annual_inc debe ser mayor a 0")
         return v
 
-    @validator('loan_amnt')
+    @field_validator('loan_amnt')
+    @classmethod
     def loan_amnt_valido(cls, v):
         if v <= 0:
             raise ValueError("loan_amnt debe ser mayor a 0")
