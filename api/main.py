@@ -58,7 +58,7 @@ def score(request: LoanRequest):
     - **riesgo**: bajo, medio o alto
     """
     try:
-        data      = request.dict()
+        data      = request.model_dump()
         resultado = predecir(data)
         return resultado
     except Exception as e:
@@ -73,7 +73,7 @@ def score_batch(request: BatchRequest):
     Útil para scoring de portfolios completos.
     """
     try:
-        registros  = [p.dict() for p in request.prestamos]
+        registros  = [p.model_dump() for p in request.prestamos]
         resultados = predecir_batch(registros)
         return {
             "resultados": resultados,
@@ -94,7 +94,7 @@ def explain(request: LoanRequest):
     - **direccion**: aumenta_riesgo o reduce_riesgo
     """
     try:
-        data      = request.dict()
+        data      = request.model_dump()
         resultado = explicar(data)
         return resultado
     except Exception as e:
@@ -109,9 +109,9 @@ def model_info():
     métricas, threshold y configuración del scorecard.
     """
     return {
-        "modelo":    config['modelo'],
-        "threshold": config['threshold'],
-        "metricas":  config['metricas'],
-        "scorecard": config['scorecard'],
+        "modelo":        config['modelo'],
+        "threshold":     config['threshold'],
+        "metricas":      config['metricas'],
+        "scorecard":     config['scorecard'],
         "escala_riesgo": config['escala_riesgo']
     }
