@@ -12,6 +12,8 @@ from api.schemas import (
 )
 from api.predictor import predecir, predecir_batch, explicar
 
+
+
 # ── Cargar configuración ───────────────────────────────────────────────────────
 ROOT       = Path(__file__).resolve().parent.parent
 MODELS_DIR = ROOT / 'models'
@@ -31,7 +33,6 @@ app = FastAPI(
     """,
     version="1.0.0"
 )
-
 
 # ── Health check ───────────────────────────────────────────────────────────────
 @app.get("/health")

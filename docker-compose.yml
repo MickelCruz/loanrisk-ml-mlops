@@ -1,0 +1,24 @@
+# ══════════════════════════════════════════════════════════════════════════════
+# docker-compose.yml — LoanRisk-ML (Desarrollo Local)
+# ══════════════════════════════════════════════════════════════════════════════
+
+services:
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: loanrisk-api
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./models:/app/models:ro
+    environment:
+      - PORT=8080
+      - PYTHONUNBUFFERED=1
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
