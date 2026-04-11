@@ -33,23 +33,7 @@ Sistema end-to-end de scoring crediticio para préstamos personales, entrenado c
 | Gini | 0.573 |
 | Threshold | 0.5387 |
 
----
 
-## Quickstart
-
-```bash
-# Clonar
-git clone https://github.com/MickelCruz/loanrisk-ml-mlops.git
-cd loanrisk-ml-mlops
-
-# Correr con Docker
-docker-compose up --build
-
-# Correr tests
-pytest tests/ -v
-```
-
-API disponible en `http://localhost:8080/docs`
 
 ---
 
