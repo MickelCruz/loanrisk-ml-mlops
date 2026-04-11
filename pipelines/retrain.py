@@ -3,6 +3,7 @@ import numpy as np
 import joblib
 import json
 import mlflow
+import mlflow.xgboost
 from pathlib import Path
 from datetime import datetime
 
@@ -22,15 +23,15 @@ DATA_PROCESSED = ROOT / 'data' / 'processed'
 MODELS_DIR     = ROOT / 'models'
 MLFLOW_DIR     = ROOT / 'mlruns'
 
+mlflow.set_tracking_uri(str(MLFLOW_DIR))
+mlflow.set_experiment("loanrisk-reentrenamiento")
+
 
 # ── Tasks ──────────────────────────────────────────────────────────────────────
 
 @task(name="verificar_drift")
 def verificar_drift():
-    """
-    Consulta drift_status.json antes de reentrenar.
-    Loguea el estado del drift para trazabilidad.
-    """
+    """Consulta drift_status.json antes de reentrenar."""
     logger = get_run_logger()
 
     ruta = MODELS_DIR / 'drift_status.json'
@@ -130,21 +131,27 @@ def transformar_datos(preprocessor, X_train, X_val, X_test):
 
 @task(name="entrenar_modelo")
 def entrenar_modelo(X_train_prep, y_train, y_val):
-    """Entrena XGBoost con los mejores hiperparámetros guardados."""
+    """Entrena XGBoost con los mejores hiperparámetros y tracking MLflow."""
     logger = get_run_logger()
 
     with open(MODELS_DIR / 'best_params.json') as f:
         best_params = json.load(f)
 
     params = best_params['XGBoost'].copy()
-    params['random_state']      = 42
-    params['n_jobs']            = -1
-    params['verbosity']         = 0
-    params['eval_metric']       = 'logloss'
-    params['scale_pos_weight']  = (y_train == 0).sum() / (y_train == 1).sum()
+    params['random_state']     = 42
+    params['n_jobs']           = -1
+    params['verbosity']        = 0
+    params['eval_metric']      = 'logloss'
+    params['scale_pos_weight'] = (y_train == 0).sum() / (y_train == 1).sum()
 
-    model = xgb.XGBClassifier(**params)
-    model.fit(X_train_prep, y_train)
+    with mlflow.start_run(run_name=f"retrain_{datetime.now().strftime('%Y%m%d_%H%M')}"):
+        mlflow.log_params(params)
+
+        model = xgb.XGBClassifier(**params)
+        model.fit(X_train_prep, y_train)
+
+        mlflow.xgboost.log_model(model, name="xgboost_model")
+        logger.info("Modelo logueado en MLflow")
 
     logger.info(f"Modelo entrenado con scale_pos_weight: {params['scale_pos_weight']:.4f}")
     return model
@@ -173,6 +180,10 @@ def evaluar_modelo(model, X_val_prep, y_val, X_test_prep, y_test):
         'ks':          round(ks, 4),
         'gini':        round(gini, 4)
     }
+
+    # Loguear métricas en MLflow
+    with mlflow.start_run(run_name=f"eval_{datetime.now().strftime('%Y%m%d_%H%M')}"):
+        mlflow.log_metrics(metricas)
 
     logger.info(f"AUC-PR Val: {auc_pr_val:.4f} | KS: {ks:.4f} | Gini: {gini:.4f}")
     return metricas
@@ -238,7 +249,7 @@ def pipeline_reentrenamiento():
     2. Split train/val/test
     3. Construir y ajustar preprocesador
     4. Transformar datos
-    5. Entrenar modelo con mejores hiperparámetros
+    5. Entrenar modelo con tracking MLflow
     6. Evaluar métricas
     7. Comparar con modelo en producción
     8. Si es mejor → guardar y actualizar configuración

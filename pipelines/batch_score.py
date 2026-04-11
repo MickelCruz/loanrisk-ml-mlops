@@ -6,6 +6,7 @@ from pathlib import Path
 from datetime import datetime
 
 from prefect import task, flow, get_run_logger
+from api.predictor import prob_a_score, clasificar_riesgo
 
 # ── Rutas ──────────────────────────────────────────────────────────────────────
 ROOT           = Path(__file__).resolve().parent.parent
@@ -55,23 +56,23 @@ def generar_scores(model, preprocessor, threshold: float,
                    df: pd.DataFrame) -> pd.DataFrame:
     """
     Genera scores para todo el portfolio.
+    Usa prob_a_score y clasificar_riesgo de predictor.py
+    para garantizar consistencia con la API.
     """
     logger = get_run_logger()
 
-    # Predicciones
     X      = preprocessor.transform(df)
     probas = model.predict_proba(X)[:, 1]
 
-    # Construir DataFrame de resultados
+    scores = [prob_a_score(p) for p in probas]
+
     resultados = pd.DataFrame({
         'probabilidad_default': probas.round(4),
-        'score':                [int(850 - 550 * p) for p in probas],
+        'score':                scores,
         'decision':             ['default' if p >= threshold else 'no_default' for p in probas],
-        'riesgo':               ['alto' if s < 600 else 'medio' if s < 700 else 'bajo'
-                                 for s in [int(850 - 550 * p) for p in probas]]
+        'riesgo':               [clasificar_riesgo(s) for s in scores]
     })
 
-    # Estadísticas del portfolio
     n_total    = len(resultados)
     n_default  = (resultados['decision'] == 'default').sum()
     n_aprobado = (resultados['decision'] == 'no_default').sum()
@@ -152,19 +153,10 @@ def pipeline_batch_scoring():
     logger = get_run_logger()
     logger.info("Iniciando pipeline de batch scoring — LoanRisk-ML")
 
-    # Paso 1 — Cargar modelo
     model, preprocessor, threshold = cargar_modelo_produccion()
-
-    # Paso 2 — Cargar portfolio
-    df = cargar_portfolio()
-
-    # Paso 3 — Generar scores
+    df         = cargar_portfolio()
     resultados = generar_scores(model, preprocessor, threshold, df)
-
-    # Paso 4 — Guardar resultados
     guardar_resultados(resultados)
-
-    # Paso 5 — Reporte ejecutivo
     generar_reporte_batch(resultados)
 
     logger.info("Pipeline de batch scoring completado")
