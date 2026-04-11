@@ -1,0 +1,33 @@
+name: CI - LoanRisk-ML
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Correr tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Configurar Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest httpx
+          pip install -r requirements-api.txt
+
+      - name: Crear modelos mock para CI
+        run: python tests/create_mock_models.py
+
+      - name: Correr tests
+        run: pytest tests/ -v --tb=short

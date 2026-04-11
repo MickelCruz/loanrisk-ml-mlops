@@ -4,11 +4,11 @@
   "metricas": {
     "auc_pr_val": 0.565,
     "auc_pr_test": 0.57,
-    "auc_roc_val": 0.7867,
-    "ks": 0.4169,
-    "gini": 0.5734,
-    "f1_optimo": 0.5076,
-    "gap_train_val": 0.0589
+    "auc_roc_val": 0.787,
+    "ks": 0.417,
+    "gini": 0.573,
+    "f1_optimo": 0.508,
+    "gap_train_val": 0.059
   },
   "scorecard": {
     "score_min": 300,

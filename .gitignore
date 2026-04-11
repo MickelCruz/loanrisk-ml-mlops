@@ -1,24 +1,46 @@
-# Datos — nunca subir al repo
+# ── Datos — nunca subir al repo ───────────────────────────────────────────────
 data/
 
-# Entorno virtual
-venv/
+# ── Modelos reales — demasiado pesados ────────────────────────────────────────
+models/*.joblib
 
-# Python
+# ── Reports generados automáticamente ─────────────────────────────────────────
+reports/drift_report_*.html
+reports/drift_report_*.parquet
+reports/batch_scores_*.parquet
+reports/batch_report_latest.json
+
+# ── Entorno virtual ───────────────────────────────────────────────────────────
+venv/
+.venv/
+
+# ── Python ────────────────────────────────────────────────────────────────────
 __pycache__/
 *.pyc
 *.pyo
+*.egg-info/
 
-# Jupyter
+# ── Jupyter ───────────────────────────────────────────────────────────────────
 .ipynb_checkpoints/
 
-# MLflow
+# ── MLflow ────────────────────────────────────────────────────────────────────
 mlruns/
 
-# Variables de entorno y credenciales
+# ── Variables de entorno y credenciales ───────────────────────────────────────
 .env
 *.json.key
+*-credentials.json
+gcp-key.json
 
-# Sistema operativo
+# ── Docker ────────────────────────────────────────────────────────────────────
+.docker/
+
+# ── Sistema operativo ─────────────────────────────────────────────────────────
 .DS_Store
 Thumbs.db
+
+# ── VS Code ───────────────────────────────────────────────────────────────────
+.vscode/
+
+# ── pytest ────────────────────────────────────────────────────────────────────
+.pytest_cache/
