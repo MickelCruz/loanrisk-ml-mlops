@@ -25,6 +25,40 @@ MLFLOW_DIR     = ROOT / 'mlruns'
 
 # ── Tasks ──────────────────────────────────────────────────────────────────────
 
+@task(name="verificar_drift")
+def verificar_drift():
+    """
+    Consulta drift_status.json antes de reentrenar.
+    Loguea el estado del drift para trazabilidad.
+    """
+    logger = get_run_logger()
+
+    ruta = MODELS_DIR / 'drift_status.json'
+
+    if not ruta.exists():
+        logger.info("drift_status.json no encontrado — procediendo sin verificación")
+        return
+
+    with open(ruta) as f:
+        status = json.load(f)
+
+    alerta  = status.get('alerta', False)
+    pct     = status.get('pct_drift', 0)
+    fecha   = status.get('fecha', 'desconocida')
+    n_drift = status.get('features_con_drift', 0)
+    total   = status.get('features_analizadas', 0)
+
+    logger.info(f"Estado de drift al {fecha}:")
+    logger.info(f"  Features con drift: {n_drift}/{total} ({pct:.0%})")
+
+    if alerta:
+        logger.info("✅ Drift detectado — reentrenamiento justificado")
+        for f in status.get('features_afectadas', []):
+            logger.info(f"  - {f}")
+    else:
+        logger.info("ℹ️ Sin drift significativo — reentrenando por schedule mensual")
+
+
 @task(name="cargar_datos")
 def cargar_datos() -> pd.DataFrame:
     """Carga el dataset de features procesadas."""
@@ -99,7 +133,6 @@ def entrenar_modelo(X_train_prep, y_train, y_val):
     """Entrena XGBoost con los mejores hiperparámetros guardados."""
     logger = get_run_logger()
 
-    # Cargar mejores hiperparámetros de Optuna
     with open(MODELS_DIR / 'best_params.json') as f:
         best_params = json.load(f)
 
@@ -167,7 +200,7 @@ def comparar_con_produccion(metricas_nuevo: dict) -> bool:
     if es_mejor:
         logger.info("✅ El nuevo modelo es mejor — se procederá a reemplazar")
     else:
-        logger.info("⚠️ El nuevo modelo no mejora al actual — se mantiene el modelo en producción")
+        logger.info("⚠️ El nuevo modelo no mejora al actual — se mantiene en producción")
 
     return es_mejor
 
@@ -177,15 +210,13 @@ def guardar_modelo(model, preprocessor, metricas: dict):
     """Guarda el nuevo modelo y actualiza la configuración."""
     logger = get_run_logger()
 
-    # Guardar modelo y preprocesador
     joblib.dump(model,        MODELS_DIR / 'XGBoost_best.joblib')
     joblib.dump(preprocessor, MODELS_DIR / 'preprocessor.joblib')
 
-    # Actualizar resultados_finales.json
     with open(MODELS_DIR / 'resultados_finales.json') as f:
         config = json.load(f)
 
-    config['metricas']          = metricas
+    config['metricas']             = metricas
     config['ultima_actualizacion'] = datetime.now().strftime("%Y-%m-%d %H:%M")
 
     with open(MODELS_DIR / 'resultados_finales.json', 'w') as f:
@@ -202,6 +233,7 @@ def pipeline_reentrenamiento():
     Pipeline completo de reentrenamiento del modelo LoanRisk-ML.
 
     Pasos:
+    0. Verificar estado de drift
     1. Cargar datos de features procesadas
     2. Split train/val/test
     3. Construir y ajustar preprocesador
@@ -213,6 +245,9 @@ def pipeline_reentrenamiento():
     """
     logger = get_run_logger()
     logger.info("Iniciando pipeline de reentrenamiento — LoanRisk-ML")
+
+    # Paso 0 — Verificar drift
+    verificar_drift()
 
     # Paso 1 — Cargar datos
     df = cargar_datos()
